@@ -1,0 +1,240 @@
+:root {
+    --bg: #0e1016;
+    --card: #181b24;
+    --accent: #5ce1e6;
+    --accent-strong: #23b7ff;
+    --text: #eff4ff;
+    --muted: #8c92a6;
+    --danger: #ff6b6b;
+    --success: #66ffb3;
+    --border: #242835;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    background: radial-gradient(circle at top, #1d2333, #0b0d13 60%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.hero h1 {
+    margin: 0.2rem 0 0.6rem;
+    font-size: 2.8rem;
+}
+
+.subtitle {
+    color: var(--muted);
+    margin-top: 0;
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin: 0;
+}
+
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: 1rem;
+}
+
+.hero-stats .label {
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.status.online::before,
+.status.offline::before {
+    content: '';
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--muted);
+}
+
+.status.online::before {
+    background: var(--success);
+}
+
+.status.offline::before {
+    background: var(--danger);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.75rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.card.full {
+    grid-column: 1 / -1;
+}
+
+.card h2 {
+    margin-top: 0;
+}
+
+textarea,
+input,
+button {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #10131c;
+    color: var(--text);
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+}
+
+textarea {
+    resize: vertical;
+}
+
+button {
+    background: linear-gradient(120deg, var(--accent), var(--accent-strong));
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(92, 225, 230, 0.35);
+}
+
+.secondary {
+    background: #1f2230;
+    border: 1px solid var(--accent);
+}
+
+.ghost {
+    background: transparent;
+    border: 1px dashed var(--muted);
+}
+
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.checkbox input {
+    width: auto;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.muted {
+    color: var(--muted);
+    margin-top: -0.5rem;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+pre {
+    background: #0b0d13;
+    border-radius: 16px;
+    padding: 1rem;
+    min-height: 200px;
+    max-height: 320px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.flash {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.flash.success {
+    background: rgba(102, 255, 179, 0.1);
+    color: var(--success);
+}
+
+.flash.error {
+    background: rgba(255, 107, 107, 0.1);
+    color: var(--danger);
+}
+
+.flash.info {
+    background: rgba(92, 225, 230, 0.1);
+    color: var(--accent);
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 1.5rem;
+    }
+
+    .hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .hero-stats {
+        width: 100%;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+}

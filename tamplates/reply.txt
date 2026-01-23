@@ -1,0 +1,12 @@
+Subject: Re: {original_subject}
+
+Hello {sender_name},
+
+Thank you for your email. This is an automatic response to let you know we
+received your message. A member of our team will follow up shortly.
+
+If this matter is urgent, please reply again with "URGENT" in the subject
+line so we can prioritize it.
+
+Best regards,
+Support Team

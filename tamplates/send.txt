@@ -1,0 +1,10 @@
+Subject: Friendly hello to {recipient}
+
+Hi {recipient},
+
+This is a sample message sent automatically from the bulk email tool. Edit
+tamplates/send.txt to customize the campaign content or replace the
+placeholders with your own text before running the sender.
+
+Best regards,
+Automation Bot
