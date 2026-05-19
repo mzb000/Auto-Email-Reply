@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 import os
+import tempfile
 from pathlib import Path
+
+# Load .env file if present (local dev only — Railway uses env vars directly)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -23,12 +31,16 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 IMAP_SERVER = os.getenv("IMAP_SERVER", "imap.gmail.com")
 
 AUTO_REPLY = _get_bool("AUTO_REPLY", True)
-AUTO_REPLY_POLL_INTERVAL = int(os.getenv("AUTO_REPLY_POLL_INTERVAL", "60"))
+AUTO_REPLY_POLL_INTERVAL = int(os.getenv("AUTO_REPLY_POLL_INTERVAL", "30"))
 AUTO_REPLY_SEARCH_CRITERIA = os.getenv("AUTO_REPLY_SEARCH_CRITERIA", "UNSEEN")
 AUTO_REPLY_FETCH_LIMIT = int(os.getenv("AUTO_REPLY_FETCH_LIMIT", "50"))
+MAILBOX_FETCH_LIMIT = int(os.getenv("MAILBOX_FETCH_LIMIT", "20"))
 
-DELAY = float(os.getenv("SEND_DELAY", "5"))  # seconds
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", "1000"))
+CACHE_ROOT = Path(os.getenv("CACHE_DIR", tempfile.gettempdir()))
+MAILBOX_CACHE = Path(os.getenv("MAILBOX_CACHE_PATH", str(CACHE_ROOT / "email_mailbox_cache.json")))
+
+DELAY = float(os.getenv("SEND_DELAY", "0.5"))  # seconds
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", "10000"))
 
 SEND_TEMPLATE = TEMPLATE_DIR / "send.txt"
 REPLY_TEMPLATE = TEMPLATE_DIR / "reply.txt"

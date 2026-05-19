@@ -3,107 +3,481 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Email Automation Control Center</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Nexus Mail</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Sora:wght@500;600&display=swap" />
     <link rel="stylesheet" href="/static/styles.css" />
 </head>
 
 <body>
-    <header class="hero">
-        <div>
-            <p class="eyebrow">Email Automation</p>
-            <h1>Email Control Center</h1>
-            <p class="subtitle">Send bulk campaigns and monitor the auto-reply daemon from a single console.</p>
-        </div>
-        <div class="hero-stats">
-            <div>
-                <span class="label">Signed in as</span>
-                <strong>{{ user_email }}</strong>
-            </div>
-            <div>
-                <span class="label">Auto Reply</span>
-                <strong class="status {{ 'online' if auto_reply_running else 'offline' }}">
-                    {{ 'Running' if auto_reply_running else 'Stopped' }}
-                </strong>
-            </div>
-        </div>
-    </header>
-
-    {% if flash %}
-    <div class="flash {{ flash.level }}">
-        {{ flash.text }}
-    </div>
-    {% endif %}
-
-    <main class="grid">
-        <section class="card">
-            <h2>Send Campaign</h2>
-            <form method="post" action="/send" class="form-grid">
-                <label>
-                    Recipients (one per line)
-                    <textarea name="recipients_text" rows="6" placeholder="user@example.com">{{ '\n'.join(request.query_params.getlist('recipients')) }}</textarea>
-                </label>
-
-                <label>
-                    Subject
-                    <input name="subject" type="text" placeholder="Friendly hello" required />
-                </label>
-
-                <label>
-                    Body
-                    <textarea name="body" rows="8" placeholder="Write your message here..." required>{{ request.query_params.get('body', '') }}</textarea>
-                </label>
-
-                <div class="form-row">
-                    <label>
-                        Delay (sec)
-                        <input name="delay" type="number" step="0.1" value="{{ default_delay }}" />
-                    </label>
-                    <label>
-                        Batch size
-                        <input name="batch_size" type="number" value="{{ default_batch_size }}" />
-                    </label>
-                    <label class="checkbox">
-                        <input type="checkbox" name="dry_run" checked />
-                        <span>Dry run</span>
-                    </label>
+    <div class="page-shell">
+        <header class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">Nexus automation suite</p>
+                <h1>Nexus Mail</h1>
+                <p class="subtitle">Craft campaigns, orchestrate replies, and inspect your inbox from one luminous cockpit.</p>
+                <div class="hero-actions">
+                    <span class="pill">Signed in as {{ user_email }}</span>
+                    <span class="pill status-chip {{ 'online' if auto_reply_running else 'offline' }}">
+                        {{ 'Auto reply is live' if auto_reply_running else 'Auto reply paused' }}
+                    </span>
                 </div>
-
-                <button type="submit">Send Campaign</button>
-            </form>
-        </section>
-
-        <section class="card">
-            <div class="card-header">
-                <h2>Auto Reply</h2>
-                <span class="status {{ 'online' if auto_reply_running else 'offline' }}">
-                    {{ 'Running' if auto_reply_running else 'Stopped' }}
-                </span>
             </div>
-            <p class="muted">Poll every {{ auto_reply_poll_interval }}s using criteria "{{ auto_reply_search }}".</p>
-            <div class="actions">
-                <form method="post" action="/auto-reply/start" style="display:inline;">
-                    <button type="submit" class="secondary" {% if auto_reply_running %}disabled{% endif %}>Start</button>
+            <div class="hero-panel">
+                <div class="glow-card">
+                    <p class="eyebrow">Auto reply cadence</p>
+                    <h3>{{ auto_reply_poll_interval }}s rhythm</h3>
+                    <p class="muted">Watching for “{{ auto_reply_search }}” threads.</p>
+                    <div class="sparkline" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                <ul class="hero-metrics">
+                    <li>
+                        <span>Batch size</span>
+                        <strong>{{ default_batch_size }}</strong>
+                    </li>
+                    <li>
+                        <span>Default delay</span>
+                        <strong>{{ default_delay }}s</strong>
+                    </li>
+                </ul>
+            </div>
+        </header>
+
+        {% if flash %}
+        <div class="flash {{ flash.level }}">
+            {{ flash.text }}
+        </div>
+        {% endif %}
+
+        <main class="grid-panels">
+            <section class="card stack command-center">
+                <div class="card-header">
+                    <div>
+                        <p class="eyebrow">Campaign console</p>
+                        <h2>Compose & launch</h2>
+                    </div>
+                    <div class="chip">Delay {{ default_delay }}s · Batch {{ default_batch_size }}</div>
+                </div>
+                <p class="muted">Build thoughtful outreach with instant previews and ambient draft saving.</p>
+
+                <form method="post" action="/send" class="form-grid send-form" enctype="multipart/form-data">
+                    <div class="two-column">
+                        <label>
+                            Recipients
+                            <textarea data-draft-field name="recipients_text" rows="6"
+                                placeholder="user@example.com">{{ '\n'.join(request.query_params.getlist('recipients')) }}</textarea>
+                        </label>
+                        <label>
+                            Message
+                            <textarea data-draft-field name="body" rows="6" placeholder="Write your message here..." required>
+{{ request.query_params.get('body', '') }}</textarea>
+                        </label>
+                    </div>
+
+                    <div class="two-column">
+                        <label>
+                            Subject
+                            <input data-draft-field name="subject" type="text" placeholder="Friendly hello"
+                                value="{{ request.query_params.get('subject', '') }}" required />
+                        </label>
+                        <div class="controls">
+                            <label>
+                                Delay (sec)
+                                <input data-draft-field name="delay" type="number" step="0.1"
+                                    value="{{ default_delay }}" />
+                            </label>
+                            <label>
+                                Batch size
+                                <input data-draft-field name="batch_size" type="number" value="{{ default_batch_size }}" />
+                            </label>
+                            <label class="checkbox">
+                                <input data-draft-field type="checkbox" name="dry_run" />
+                                <span>Dry run (preview only)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="two-column">
+                        <label>
+                            Attachments
+                            <input name="attachments" type="file" multiple />
+                        </label>
+                        <label>
+                            Suggestions
+                            <div class="controls" id="draft-suggestions" aria-live="polite"></div>
+                        </label>
+                    </div>
+
+                    <div class="draft-banner">
+                        <p id="draft-status" aria-live="polite">Drafts auto-save while you type.</p>
+                        <button type="button" id="draft-clear" class="ghost">Clear draft</button>
+                    </div>
+
+                    <button type="submit" class="primary">Launch campaign</button>
                 </form>
-                <form method="post" action="/auto-reply/stop" style="display:inline;">
-                    <button type="submit" class="ghost" {% if not auto_reply_running %}disabled{% endif %}>Stop</button>
-                </form>
+            </section>
+
+            <section class="card stack service-card">
+                <div class="card-header">
+                    <div>
+                        <p class="eyebrow">Auto reply</p>
+                        <h2>Smart responder</h2>
+                    </div>
+                    <span class="status-pill {{ 'online' if auto_reply_running else 'offline' }}">
+                        {{ 'LIVE' if auto_reply_running else 'OFFLINE' }}
+                    </span>
+                </div>
+                <p class="muted">Polling every {{ auto_reply_poll_interval }}s · criteria "{{ auto_reply_search }}".</p>
+                <div class="actions">
+                    <form method="post" action="/auto-reply/start">
+                        <button type="submit" class="secondary" {% if auto_reply_running %}disabled{% endif %}>Start service</button>
+                    </form>
+                    <form method="post" action="/auto-reply/stop">
+                        <button type="submit" class="ghost" {% if not auto_reply_running %}disabled{% endif %}>Stop service</button>
+                    </form>
+                </div>
+                <div class="log-grid">
+                    <div class="log-panel">
+                        <div class="log-panel__header">
+                            <h3>Auto reply log</h3>
+                        </div>
+                        <pre>{% for line in auto_reply_log %}{{ line }}
+{% endfor %}</pre>
+                    </div>
+                    <div class="log-panel">
+                        <div class="log-panel__header">
+                            <h3>Campaign log</h3>
+                        </div>
+                        <pre>{% for line in send_log %}{{ line }}
+{% endfor %}</pre>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <section class="gmail-shell">
+            <div class="gmail-column gmail-list-panel">
+                <div class="gmail-panel-header">
+                    <div>
+                        <p class="eyebrow">Inbox</p>
+                        <h2>Recent emails</h2>
+                    </div>
+                    <span class="pill">{{ mailbox|length }} emails</span>
+                </div>
+                <div class="gmail-list" id="gmail-list">
+                    {% if mailbox %}
+                    {% for msg in mailbox %}
+                    <article class="gmail-card"
+                        data-payload='{{ {
+                            "subject": msg.subject or "(No subject)",
+                            "from": msg["from"],
+                            "dateShort": msg.date_short or msg.date,
+                            "dateFull": msg.date_full or msg.date,
+                            "dateIso": msg.date_iso,
+                            "body": msg.body
+                        } | tojson | e }}'>
+                        <div class="gmail-avatar">{{ msg['from'][:2] }}</div>
+                        <div class="gmail-card-body">
+                            <div class="gmail-card-meta">
+                                <strong>{{ msg['from'] }}</strong>
+                                <time datetime="{{ msg.date_iso }}">{{ msg.date_short or msg.date }}</time>
+                            </div>
+                            <p class="gmail-card-subject">{{ msg.subject or '(No subject)' }}</p>
+                            <p class="gmail-card-snippet">{{ msg.body[:140] }}{% if msg.body|length > 140 %}…{% endif %}</p>
+                        </div>
+                        <button type="button" class="view-icon" aria-label="Open email">↗</button>
+                    </article>
+                    {% endfor %}
+                    {% else %}
+                    <p class="muted">Inbox cache empty.</p>
+                    {% endif %}
+                </div>
             </div>
 
-            <div class="log">
-                <h3>Auto Reply Log</h3>
-                <pre>{% for line in auto_reply_log %}{{ line }}
-{% endfor %}</pre>
+            <div class="gmail-column gmail-viewer-panel">
+                <div class="gmail-viewer" id="gmail-viewer">
+                    <div class="empty-state">
+                        <h3>Select an email</h3>
+                        <p class="muted">Click any card on the left to preview the conversation with full timestamp.</p>
+                    </div>
+                </div>
             </div>
         </section>
+    </div>
 
-        <section class="card full">
-            <h2>Campaign Log</h2>
-            <pre>{% for line in send_log %}{{ line }}
-{% endfor %}</pre>
-        </section>
-    </main>
+    <div class="gmail-modal" id="gmail-modal">
+        <div class="gmail-modal-content">
+            <button class="modal-close" id="modal-close">×</button>
+            <div id="modal-body">
+                <p class="muted">No message selected.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const DRAFT_KEY = 'email-dashboard-draft';
+            const form = document.querySelector('.send-form');
+            const statusEl = document.getElementById('draft-status');
+            const clearBtn = document.getElementById('draft-clear');
+
+            if (!form || !statusEl) return;
+
+            const fields = Array.from(form.querySelectorAll('[data-draft-field]'));
+            const suggestionsEl = document.getElementById('draft-suggestions');
+            const subjectField = form.querySelector('[name="subject"]');
+            const bodyField = form.querySelector('[name="body"]');
+            let lastSuggestions = [];
+            let activeSuggestionIndex = -1;
+
+            const readDraft = () => {
+                try {
+                    return JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}');
+                } catch (error) {
+                    console.warn('Unable to parse draft cache', error);
+                    return {};
+                }
+            };
+
+            const writeDraft = (payload) => {
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+            };
+
+            const collectPayload = () => {
+                const data = {};
+                fields.forEach((field) => {
+                    if (field.type === 'checkbox') {
+                        data[field.name] = field.checked;
+                    } else {
+                        data[field.name] = field.value;
+                    }
+                });
+                return data;
+            };
+
+            const applyDraft = (payload) => {
+                fields.forEach((field) => {
+                    if (!(field.name in payload)) return;
+                    if (field.type === 'checkbox') {
+                        field.checked = !!payload[field.name];
+                    } else {
+                        field.value = payload[field.name];
+                    }
+                });
+            };
+
+            const showStatus = (message, tone = '') => {
+                statusEl.textContent = message;
+                statusEl.dataset.tone = tone;
+            };
+
+            const debouncedPersist = (() => {
+                let timer;
+                return () => {
+                    showStatus('Saving…', 'pending');
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        writeDraft(collectPayload());
+                        showStatus('Draft saved just now', 'saved');
+                    }, 300);
+                };
+            })();
+
+            const clearLocalDraft = () => {
+                fields.forEach((field) => {
+                    if (field.type === 'checkbox') {
+                        field.checked = false;
+                    } else {
+                        field.value = '';
+                    }
+                });
+                localStorage.removeItem(DRAFT_KEY);
+            };
+
+            const renderSuggestions = (items) => {
+                if (!suggestionsEl) return;
+                lastSuggestions = Array.isArray(items) ? items : [];
+                activeSuggestionIndex = -1;
+                if (!items || !items.length) {
+                    suggestionsEl.innerHTML = '<p class="muted">No suggestions yet.</p>';
+                    return;
+                }
+                suggestionsEl.innerHTML = items
+                    .map((item, idx) => {
+                        const subject = (item.subject || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        const bodyPreview = (item.body || '').slice(0, 120).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        return `
+                            <button type="button" class="ghost" data-suggestion-index="${idx}" data-suggestion-item>
+                                <strong>${subject || '(No subject)'}</strong><br />
+                                <span class="muted">${bodyPreview}${(item.body || '').length > 120 ? '…' : ''}</span>
+                            </button>
+                        `;
+                    })
+                    .join('');
+                const applySuggestion = (idx) => {
+                    const item = lastSuggestions[idx];
+                    if (!item) return;
+                    if (subjectField) subjectField.value = item.subject || '';
+                    if (bodyField) bodyField.value = item.body || '';
+                    debouncedPersist();
+                };
+
+                const setActive = (idx) => {
+                    const buttons = Array.from(suggestionsEl.querySelectorAll('[data-suggestion-item]'));
+                    buttons.forEach((b) => b.classList.remove('active'));
+                    if (idx < 0 || idx >= buttons.length) {
+                        activeSuggestionIndex = -1;
+                        return;
+                    }
+                    activeSuggestionIndex = idx;
+                    const target = buttons[idx];
+                    target.classList.add('active');
+                    target.scrollIntoView({ block: 'nearest' });
+                };
+
+                Array.from(suggestionsEl.querySelectorAll('[data-suggestion-index]')).forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const idx = Number(btn.dataset.suggestionIndex || '0');
+                        applySuggestion(idx);
+                    });
+                    btn.addEventListener('mouseenter', () => {
+                        const idx = Number(btn.dataset.suggestionIndex || '0');
+                        setActive(idx);
+                    });
+                });
+
+                form.addEventListener('keydown', (event) => {
+                    if (!lastSuggestions.length) return;
+                    if (event.key === 'ArrowDown') {
+                        event.preventDefault();
+                        const next = activeSuggestionIndex + 1;
+                        setActive(next >= lastSuggestions.length ? 0 : next);
+                    }
+                    if (event.key === 'ArrowUp') {
+                        event.preventDefault();
+                        const prev = activeSuggestionIndex - 1;
+                        setActive(prev < 0 ? lastSuggestions.length - 1 : prev);
+                    }
+                    if (event.key === 'Enter' && activeSuggestionIndex >= 0) {
+                        event.preventDefault();
+                        applySuggestion(activeSuggestionIndex);
+                    }
+                    if (event.key === 'Tab' && lastSuggestions.length) {
+                        if (document.activeElement === bodyField || document.activeElement === subjectField) {
+                            applySuggestion(0);
+                        }
+                    }
+                }, { capture: true });
+            };
+
+            const fetchSuggestions = (() => {
+                let timer;
+                return () => {
+                    if (!suggestionsEl) return;
+                    clearTimeout(timer);
+                    timer = setTimeout(async () => {
+                        const q = `${subjectField?.value || ''} ${bodyField?.value || ''}`.trim();
+                        if (!q) {
+                            renderSuggestions([]);
+                            return;
+                        }
+                        try {
+                            const res = await fetch(`/draft/suggest?q=${encodeURIComponent(q.slice(0, 200))}`);
+                            const data = await res.json();
+                            renderSuggestions(data.items || []);
+                        } catch (err) {
+                            console.warn('Unable to fetch draft suggestions', err);
+                        }
+                    }, 400);
+                };
+            })();
+
+            const hydrated = readDraft();
+            if (Object.keys(hydrated).length) {
+                applyDraft(hydrated);
+                showStatus('Draft restored from last visit', 'saved');
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('sent') === '1') {
+                clearLocalDraft();
+                showStatus('Sent successfully. Draft cleared.', 'cleared');
+            }
+
+            fields.forEach((field) => {
+                field.addEventListener('input', debouncedPersist);
+                field.addEventListener('change', debouncedPersist);
+            });
+
+            subjectField?.addEventListener('input', fetchSuggestions);
+            bodyField?.addEventListener('input', fetchSuggestions);
+            fetchSuggestions();
+
+            clearBtn?.addEventListener('click', () => {
+                clearLocalDraft();
+                showStatus('Draft cleared', 'cleared');
+            });
+        })();
+
+        (function () {
+            const gmailCards = document.querySelectorAll('.gmail-card');
+            const gmailViewer = document.getElementById('gmail-viewer');
+            const gmailModal = document.getElementById('gmail-modal');
+            const modalClose = document.getElementById('modal-close');
+            const modalBody = document.getElementById('modal-body');
+
+            gmailCards.forEach((card) => {
+                card.addEventListener('click', () => {
+                    gmailCards.forEach((c) => c.classList.remove('active'));
+                    card.classList.add('active');
+                    let payload = { subject: '', from: '', dateShort: '', dateFull: '', dateIso: '', body: '' };
+                    try {
+                        payload = JSON.parse(card.dataset.payload || '{}');
+                    } catch (err) {
+                        console.error('Failed to parse email payload', err);
+                    }
+                    const { subject, from, dateShort, dateFull, dateIso, body } = payload;
+                    gmailViewer.innerHTML = `
+                        <header class="viewer-header">
+                            <div>
+                                <p class="muted">${dateFull || dateShort || ''}</p>
+                                <h3>${subject}</h3>
+                                <p class="from-line">${from}</p>
+                            </div>
+                            <button type="button" class="viewer-expand">Open</button>
+                        </header>
+                        <pre>${body}</pre>
+                    `;
+                    modalBody.innerHTML = `
+                        <h2>${subject}</h2>
+                        <p class="muted">${from} · ${dateFull || dateShort || ''}</p>
+                        <p class="muted"><small>Exact timestamp: ${dateIso || 'n/a'}</small></p>
+                        <pre>${body}</pre>
+                    `;
+                    const expandBtn = document.querySelector('.viewer-expand');
+                    if (expandBtn) {
+                        expandBtn.addEventListener('click', () => gmailModal.classList.add('open'));
+                    }
+                });
+            });
+
+            modalClose.addEventListener('click', () => {
+                gmailModal.classList.remove('open');
+            });
+            gmailModal.addEventListener('click', (event) => {
+                if (event.target === gmailModal) {
+                    gmailModal.classList.remove('open');
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>
